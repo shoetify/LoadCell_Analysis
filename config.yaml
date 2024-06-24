@@ -1,0 +1,19 @@
+General:
+  app_name: load_cell_calculation
+  version: 1.0.0
+  link: https://github.com/shoetify/LoadCell_Analysis
+
+Parameter:
+  #Use this if using the same wind tunnel. Note: 0hz has been set to 0m/s wind speed.
+  WindSpeed_relationship: y=0.1726x-0.06956
+
+  #The recording sample rate of the load cell. UNIT(Hz)
+  Sample_rate: 1000
+
+  #The following three parameter is to deside the stable time after and before the wind speed is change.
+  #This parameter is to deside how many second of data were not used when the wind speed change(it start from 0Hz), UNIT(s).
+  Stable_time_0Hz: 30
+  #This parameter is to deside how many second of data were not used when the wind speed change(not start from 0Hz), UNIT(s).
+  Stable_time_others: 10
+  #This parameter is to deside how many second of data were not used before the wind speed change, UNIT(s).
+  Gap_before_next_wind_speed: 1
