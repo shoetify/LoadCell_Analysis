@@ -106,3 +106,22 @@ class LoadCell_Util:
             return 0.0
         else:
             return motorHz * wind_speed_a + wind_speed_b
+
+    @staticmethod
+    def proceed_table(tables, stable_time_0hz, stable_time_others, gap_before_next_wind_speed, wind_speed_a,
+                      wind_speed_b):
+        proceed_tables = []
+        for table in tables:
+            previous_file_name = ''
+            proceed_table = []
+            wind_speed = []
+            start_time = []
+            end_time = []
+            file_name = []
+            for i in range(len(table[0])):
+                if not table[0][i]:
+                    raise TypeError('Wind Speed Cell is empty!!! Location: [' + str(i) + '] ...')
+                wind_speed.append(LoadCell_Util.motor_to_wind_speed(float(table[0][i]), wind_speed_a, wind_speed_b))
+                if not table[1][i]:
+                    raise TypeError('Start Time Cell is empty!!! Location: [' + str(i) + '] ...')
+                start_time.append(int(table[1][i]))

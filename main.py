@@ -11,8 +11,6 @@ for file in os.listdir():
         print('Reading file [' + file + '] ...')
         tables = tables + LoadCell_Util.parse_markdown(file)
 
-
-
 # If no log file, then need to input the log manually.
 if not hasMD:
     raise TypeError("Cannot find any log in this folder!!!")
@@ -24,10 +22,14 @@ with open('config.yaml', 'r') as file:
 # Get Wind speed relationship
 wind_speed_a, wind_speed_b = LoadCell_Util.extract_numbers_from_string(config['Parameter']['WindSpeed_relationship'])
 
+# Change the raw log table into proceeded table and ready for calculation
 stable_time_0Hz = config['Parameter']['Stable_time_0Hz']
 stable_time_others = config['Parameter']['Stable_time_others']
 gap_before_next_wind_speed = config['Parameter']['Gap_before_next_wind_speed']
+proceeded_tables = LoadCell_Util.proceed_table(tables, stable_time_0Hz, stable_time_others, gap_before_next_wind_speed,
+                                               wind_speed_a, wind_speed_b)
 
+print(float('25'))
 
 # for table in tables:
 #     print(table)
