@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="e3cdf134-c943-45d3-9d78-c635c284602c" name="Changes" comment="+ wind speed calculation">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Util.py" beforeDir="false" afterPath="$PROJECT_DIR$/Util.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-    </list>
+    <list default="true" id="e3cdf134-c943-45d3-9d78-c635c284602c" name="Changes" comment="+ table proceeding" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -71,11 +67,20 @@
       <option name="project" value="LOCAL" />
       <updated>1719211387466</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="+ table proceeding">
+      <option name="closed" value="true" />
+      <created>1719213372664</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1719213372664</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="+ wind speed calculation" />
-    <option name="LAST_COMMIT_MESSAGE" value="+ wind speed calculation" />
+    <MESSAGE value="+ table proceeding" />
+    <option name="LAST_COMMIT_MESSAGE" value="+ table proceeding" />
   </component>
 </project>
