@@ -134,7 +134,7 @@ class LoadCell_Util:
         """
 
         print('Proceeding lab log data ... ')
-        proceed_tables = [[] for _ in range(4)]
+        proceed_tables = []
         table_count = 0
         for table in tables:
             table_count += 1
@@ -182,11 +182,8 @@ class LoadCell_Util:
                     else:
                         raise TypeError('File_Name Cell Error, cannot find file name!!! Location: [' + str(i) + '] ...')
 
-            proceed_tables[0] += wind_speed
-            proceed_tables[1] += start_time
-            proceed_tables[2] += end_time
-            proceed_tables[3] += file_name
-            # proceed_tables.append([wind_speed, start_time, end_time, file_name])
+
+            proceed_tables.append([wind_speed, start_time, end_time, file_name])
 
             print('Successfully proceeding lab log table ' + str(table_count) + ' ...')
 

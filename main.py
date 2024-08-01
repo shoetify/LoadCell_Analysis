@@ -34,6 +34,8 @@ gap_before_next_wind_speed = config['Parameter']['Gap_before_next_wind_speed']
 proceeded_tables = LoadCell_Util.proceed_table(tables, stable_time_0Hz, stable_time_others, gap_before_next_wind_speed,
                                                wind_speed_a, wind_speed_b)
 
+print(" ")
+
 # Start analyzing the data
 sample_rate = config['Parameter']['Sample_rate']
-DataAnalyzer.analyze(proceeded_tables, sample_rate)
+DataAnalyzer.analyze(proceeded_tables, sample_rate, stable_time_others, stable_time_0Hz)
