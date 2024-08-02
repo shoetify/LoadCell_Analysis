@@ -1,5 +1,8 @@
 import re
 import numpy as np
+import pandas as pd
+from openpyxl import load_workbook
+
 
 class LoadCell_Util:
     @staticmethod
@@ -182,7 +185,6 @@ class LoadCell_Util:
                     else:
                         raise TypeError('File_Name Cell Error, cannot find file name!!! Location: [' + str(i) + '] ...')
 
-
             proceed_tables.append([wind_speed, start_time, end_time, file_name])
 
             print('Successfully proceeding lab log table ' + str(table_count) + ' ...')
@@ -219,3 +221,39 @@ class LoadCell_Util:
         slope, intercept = coefficients
 
         return slope, intercept
+
+    @staticmethod
+    def append_df_to_excel(file_path, df, sheet_name='Sheet1'):
+        try:
+            # Try to load the existing workbook
+            workbook = load_workbook(file_path)
+            with pd.ExcelWriter(file_path, engine='openpyxl', mode='a') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+        except FileNotFoundError:
+            # If the file does not exist, create a new one
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+    @staticmethod
+    def toExcel(proceeded_tables, mean_tables, rms_tables):
+
+        file_name = "Output.xlsx"
+
+        for i in range(len(proceeded_tables)):
+            df = pd.DataFrame({
+                "Wind Speeds": proceeded_tables[i][0],
+                "Start Time": proceeded_tables[i][1],
+                "End Time": proceeded_tables[i][2],
+                "Drag Force(mean)": [inner_list[0] for inner_list in mean_tables[i]],
+                "Lift Force(mean)": [inner_list[1] for inner_list in mean_tables[i]],
+                "Rms(1)": [inner_list[0] for inner_list in rms_tables[i]],
+                "Rms(2)": [inner_list[1] for inner_list in rms_tables[i]],
+                "Rms(3)": [inner_list[2] for inner_list in rms_tables[i]],
+                "Rms(4)": [inner_list[3] for inner_list in rms_tables[i]],
+            })
+
+            print(f"start writing sheet{i}")
+            LoadCell_Util.append_df_to_excel(file_name, df, sheet_name=str(i))
+            print("successfully writing")
+
+        print(f"Data exported to {file_name} successfully.")

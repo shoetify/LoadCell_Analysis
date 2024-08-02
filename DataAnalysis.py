@@ -9,14 +9,23 @@ class DataAnalyzer:
         proceeding_file_name = ''
         start_time, end_time = 0, 0
         time_series = []
+        mean_force_tables = []
+        rms_force_tables = []
 
         for table in proceeded_tables:
 
             raw_data = [[] for _ in range(4)]
             accumulated_error = [0 for _ in range(4)]
+            mean_force_table = []
+            rms_force_table = []
 
             proceeding_file_name = ''
             for i in range(len(table[0])):
+
+                # These two list is to store each calculated mean and rms value and store back to force_table.
+                mean_force = []
+                rms_force = []
+
                 # If it's a new file name, then read the file.
                 if proceeding_file_name != table[3][i]:
                     proceeding_file_name = table[3][i]
@@ -42,9 +51,12 @@ class DataAnalyzer:
                     for k in range(len(data)):
                         data[k] = data[k] - accumulated_error[j] - slope * k
 
+                    mean_force.append(np.mean(data))
+                    rms_force.append(np.sqrt(np.mean(np.square(data))))
+
                     print(
-                        f"    mean value after correction is: {np.mean(data)}; RMS value after correction is: "
-                        f"{np.sqrt(np.mean(np.square(data)))}")
+                        f"    mean value after correction is: {mean_force[-1]}; RMS value after correction is: "
+                        f"{rms_force[-1]}")
 
                     test_time = stable_time_others
                     if table[0][i] < 0.1:
@@ -52,4 +64,13 @@ class DataAnalyzer:
                     accumulated_error[j] += slope * (end_time - start_time + test_time) * sample_rate
                     print(f"    accumulated error is: {accumulated_error[j]}")
 
+                mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3]])
+                rms_force_table.append(rms_force)
+
                 print(' ')
+
+            # Put the result back to force_tables
+            mean_force_tables.append(mean_force_table)
+            rms_force_tables.append(rms_force_table)
+
+        return (mean_force_tables, rms_force_tables)

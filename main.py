@@ -38,4 +38,6 @@ print(" ")
 
 # Start analyzing the data
 sample_rate = config['Parameter']['Sample_rate']
-DataAnalyzer.analyze(proceeded_tables, sample_rate, stable_time_others, stable_time_0Hz)
+mean_tables, rms_tables = DataAnalyzer.analyze(proceeded_tables, sample_rate, stable_time_others, stable_time_0Hz)
+
+LoadCell_Util.toExcel(proceeded_tables, mean_tables, rms_tables)
