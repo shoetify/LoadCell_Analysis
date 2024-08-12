@@ -1,21 +1,34 @@
 import os
+import time
+
 import yaml
 from Util import LoadCell_Util
 from DataAnalysis import DataAnalyzer
 
 # Read all the tables in the log file
-hasMD = False
+hasFiles = False
 tables = []
 for file in os.listdir():
     if file.endswith('.md'):
-        hasMD = True
+        hasFiles = True
         print(f'Reading file [{file}] ...')
         tables += LoadCell_Util.parse_markdown(file)
         print(f'Successfully read file [{file}] ...')
+    elif file.endswith('log.xlsx') and not file.startswith('~'):
+        hasFiles = True
+        print(f'Reading file [{file}] ...')
+        tables += LoadCell_Util.parse_excel(file)
+        print(f'Successfully read file [{file}] ...')
+
+print(tables)
 
 # If no log file, then need to input the log manually.
-if not hasMD:
-    raise TypeError("Cannot find any log in this folder!!!")
+if not hasFiles:
+    input("***************ERROR*****************\n"
+          "Cannot find any log in this folder!!!\n"
+          "*************************************")
+    raise (TypeError("Cannot find any log in this folder!!!"))
+
 print('Lab log reading finish ...')
 
 print('Config file reading ... ')

@@ -60,6 +60,29 @@ class LoadCell_Util:
         return tables
 
     @staticmethod
+    def parse_excel(file_path):
+        """
+        This function reads a markdown file, identifies tables following "## Note" sections,
+        and extracts the data into lists.
+
+        :param file_path: Path to the markdown file.
+        :return: A list of tables, where each table is represented as a list of three lists
+                 (wind_speed, start_time, file_name).
+        """
+
+        df = pd.read_excel(file_path, header=None)
+        df = df.replace(np.nan, "")
+        df = df.astype(str)
+
+        # Variables to store data
+        wind_speed = df.iloc[1:, 0].tolist()
+        start_time = df.iloc[1:, 1].tolist()
+        end_time = df.iloc[1:, 2].tolist()
+        file_name = df.iloc[1:, 3].tolist()
+
+        return [[wind_speed, start_time, end_time, file_name]]
+
+    @staticmethod
     def read_txt_file(file_path):
         """
         Reads a .txt file where each row contains 12 columns separated by tabs or spaces,
