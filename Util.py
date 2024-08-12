@@ -1,3 +1,4 @@
+import os
 import re
 import numpy as np
 import pandas as pd
@@ -261,6 +262,8 @@ class LoadCell_Util:
     def toExcel(proceeded_tables, mean_tables, rms_tables):
 
         file_name = "Output.xlsx"
+        if os.path.isfile(file_name):
+            raise (TypeError("'Output.xlsx' already exist. Please remove it and try again"))
 
         for i in range(len(proceeded_tables)):
             df = pd.DataFrame({
