@@ -179,7 +179,8 @@ class LoadCell_Util:
                 # Transform the recorded start time to calculated start time
                 if not table[1][i]:
                     raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
-                if len(wind_speed) > 1 and wind_speed[-2] == 0.0:
+                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0) or (len(file_name) == 0 and table[1][i] != 0) or (
+                        len(file_name) != 0 and table[3][i]):
                     # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
                     start_time.append(int(table[1][i]) + stable_time_0hz)
                 else:
