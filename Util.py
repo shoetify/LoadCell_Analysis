@@ -179,7 +179,7 @@ class LoadCell_Util:
                 # Transform the recorded start time to calculated start time
                 if not table[1][i]:
                     raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
-                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0) or (len(file_name) == 0 and table[1][i] != 0) or (
+                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0) or (len(file_name) == 0 and int(table[1][i]) != 0) or (
                         len(file_name) != 0 and table[3][i]):
                     # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
                     start_time.append(int(table[1][i]) + stable_time_0hz)
@@ -273,6 +273,10 @@ class LoadCell_Util:
                 "End Time": proceeded_tables[i][2],
                 "Drag Force(mean)": [inner_list[0] for inner_list in mean_tables[i]],
                 "Lift Force(mean)": [inner_list[1] for inner_list in mean_tables[i]],
+                "F1": [inner_list[2] for inner_list in mean_tables[i]],
+                "F2": [inner_list[3] for inner_list in mean_tables[i]],
+                "F3": [inner_list[4] for inner_list in mean_tables[i]],
+                "F4": [inner_list[5] for inner_list in mean_tables[i]],
                 "Rms(1)": [inner_list[0] for inner_list in rms_tables[i]],
                 "Rms(2)": [inner_list[1] for inner_list in rms_tables[i]],
                 "Rms(3)": [inner_list[2] for inner_list in rms_tables[i]],

@@ -64,7 +64,7 @@ class DataAnalyzer:
                     accumulated_error[j] += slope * (end_time - start_time + test_time) * sample_rate
                     print(f"    accumulated error is: {accumulated_error[j]}")
 
-                mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3]])
+                mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3], mean_force[0], mean_force[1], mean_force[2], mean_force[3]])
                 rms_force_table.append(rms_force)
                 print(' ')
 
