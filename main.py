@@ -44,11 +44,11 @@ try:
                                                    wind_speed_a, wind_speed_b)
 
     test_condition = {}
-    test_condition['density'] = config['Data_calculation']['air_density(kg/m3)']
+    test_condition['density'] = config['Data_calculation']['air_density']
     if not test_condition['density'] > 0:
         raise TypeError('Density of the air should be larger than 0')
-    test_condition['projective_area'] = config['Data_calculation']['cylinder_diameter(m)'] * config['Data_calculation'][
-        'test_section_length(m)']
+    test_condition['projective_area'] = config['Data_calculation']['cylinder_diameter'] * config['Data_calculation'][
+        'test_section_length']
     if not test_condition['projective_area'] > 0:
         raise TypeError('Projective area of the module should be larger than 0')
 
