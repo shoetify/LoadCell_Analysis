@@ -1,9 +1,9 @@
 General:
   app_name: load_cell_calculation
-  version: 1.0.0
+  version: 1.1
   link: https://github.com/shoetify/LoadCell_Analysis
 
-Parameter:
+Data_reading:
   #Use this if using the same wind tunnel. Note: 0hz has been set to 0m/s wind speed.
   WindSpeed_relationship: y=0.1726x-0.06956
 
@@ -17,3 +17,11 @@ Parameter:
   Stable_time_others: 10
   #This parameter is to deside how many second of data were not used before the wind speed change, UNIT(s).
   Gap_before_next_wind_speed: 1
+
+Data_calculation:
+
+  air_density(kg/m3): 1.225
+
+  cylinder_diameter(m): 0.06
+
+  test_section_length(m): 1.32

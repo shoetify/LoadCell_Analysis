@@ -179,7 +179,8 @@ class LoadCell_Util:
                 # Transform the recorded start time to calculated start time
                 if not table[1][i]:
                     raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
-                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0) or (len(file_name) == 0 and int(table[1][i]) != 0) or (
+                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0) or (
+                        len(file_name) == 0 and int(table[1][i]) != 0) or (
                         len(file_name) != 0 and table[3][i]):
                     # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
                     start_time.append(int(table[1][i]) + stable_time_0hz)
@@ -260,7 +261,7 @@ class LoadCell_Util:
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     @staticmethod
-    def toExcel(proceeded_tables, mean_tables, rms_tables):
+    def toExcel(proceeded_tables, mean_tables, rms_tables, test_condition):
 
         file_name = "Output.xlsx"
         if os.path.isfile(file_name):
@@ -273,15 +274,23 @@ class LoadCell_Util:
                 "End Time": proceeded_tables[i][2],
                 "Drag Force(mean)": [inner_list[0] for inner_list in mean_tables[i]],
                 "Lift Force(mean)": [inner_list[1] for inner_list in mean_tables[i]],
-                "F1": [inner_list[2] for inner_list in mean_tables[i]],
-                "F2": [inner_list[3] for inner_list in mean_tables[i]],
-                "F3": [inner_list[4] for inner_list in mean_tables[i]],
-                "F4": [inner_list[5] for inner_list in mean_tables[i]],
-                "Rms(1)": [inner_list[0] for inner_list in rms_tables[i]],
-                "Rms(2)": [inner_list[1] for inner_list in rms_tables[i]],
-                "Rms(3)": [inner_list[2] for inner_list in rms_tables[i]],
-                "Rms(4)": [inner_list[3] for inner_list in rms_tables[i]],
+                "F1_drag": [inner_list[2] for inner_list in mean_tables[i]],
+                "F1_lift": [inner_list[3] for inner_list in mean_tables[i]],
+                "F2_drag": [inner_list[4] for inner_list in mean_tables[i]],
+                "F2_lift": [inner_list[5] for inner_list in mean_tables[i]],
+                "Rms1_drag": [inner_list[0] for inner_list in rms_tables[i]],
+                "Rms1_lift": [inner_list[1] for inner_list in rms_tables[i]],
+                "Rms2_drag": [inner_list[2] for inner_list in rms_tables[i]],
+                "Rms2_lift": [inner_list[3] for inner_list in rms_tables[i]],
             })
+
+            df["Cd"] = df.apply(
+                lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                    "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
+
+            df["Cl"] = df.apply(
+                lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                    "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
 
             print(f"start writing sheet{i}")
             LoadCell_Util.append_df_to_excel(file_name, df, sheet_name=str(i))
