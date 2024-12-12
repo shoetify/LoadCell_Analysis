@@ -10,7 +10,7 @@ example log data:
 
 ![image](https://github.com/user-attachments/assets/7c6b0972-695f-4132-a9fd-1a6565bb704c)
 
-- a .xlsx file name end with "log.xlsx".
+- A valid file name is ".xlsx" file name end with "log.xlsx".
 
 - 1st column is the motor's speed (will translate to wind speed during the calculation).
 
@@ -23,32 +23,44 @@ example log data:
 ## 3. Config file
 Change the parameter in the config file
 
-### Data_reading:
+### 3.1. Data_reading:
 This section is the parameter related to data reading.
 
 - WindSpeed_relationship: 
 
-  This relationship translate the speed of motor into the wind speed. If the speed of motor is 0Hz, the wind speed will set to 0m/s.
+  This relationship translate the speed of motor into the wind speed. 
+  
+  If the speed of motor is 0Hz, the wind speed will set to 0m/s automatically.
+
+  If your input is wind speed directly, you can input: y = x
+
 
 - Sample_rate: unit(Hz)
 
-  The recording sample rate of the load cell. This parameter is to translate the raw data into real time.
+  The recording sample rate of the load cell.
+
+
+The following three parameter is to deside the stable time after and before the wind speed is change.
 
 - Stable_time_0Hz: unit(s)
 
-  The following three parameter is to deside the stable time after and before the wind speed is change.
+  This parameter is to deside how many second of data were not used when the wind speed change from 0m/s. Normally it will be larger as it takes more time to stable when it starts from 0m/s.
 
-  This parameter is to deside how many second of data were not used when the wind speed change(it start from 0Hz). Normally it will be larger as it takes more time to stable when it start from 0m/s.
 
 - Stable_time_others: unit(s)
 
-  This parameter is to deside how many second of data were not used when the wind speed change(not start from 0Hz).
+  This parameter is to deside how many second of data were not used when the wind speed change not from 0m/s.
+
+  Recommend to set as 10.
+
 
 - Gap_before_next_wind_speed: unit(s)
 
-  This parameter is to deside how many second of data were not used before the wind speed change. Recommend to set as 1 to avoid mistake during the experiment (change the wind speed early).
+  This parameter is to deside how many second of data were not used before the wind speed change. 
 
-### Data_calculation:
+  Recommend to set as 1 to avoid mistake during the experiment (change the wind speed early).
+
+### 3.2. Data_calculation:
 This section is the parameter related to the drag and lift coefficient calculating.
 
 - air_density: unit(kg/m3)
