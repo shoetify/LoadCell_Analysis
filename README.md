@@ -1,27 +1,29 @@
 # Input
 Needs three types of files:
 ## 1. Raw data of Load cell
-- a .txt file.
 
-- 12 columns of data (2 Load cell works in the same time, each load cell have 6 channels) 
+It's normally a:
+- ".txt" file.
+
+- 12 columns of data inside the file (2 Load cell works in the same time, each load cell have 6 channels) 
 
 ## 2. Log data for experiment 
 example log data:
 
 ![image](https://github.com/user-attachments/assets/7c6b0972-695f-4132-a9fd-1a6565bb704c)
 
-- A valid file name is ".xlsx" file name end with "log.xlsx".
+- All the files in the folder will be scanned and all files whose name end with "log.xlsx" will be consided as log data. For example: "test log.xlsx"
 
 - 1st column is the motor's speed (will translate to wind speed during the calculation).
 
 - 2nd column is start time of the test section.
 
-- 3rd column is end time of the test section. if next test start immediately(next start time = this end time), you can leave this cell blank.
+- 3rd column is end time of the test section. if next test start immediately(i.e. next start time = this end time), you can leave this cell blank.
 
-- 4th column is the raw data file name. You can leave this cell blank if this test is at the same raw data file with the last one.
+- 4th column is the raw data file name (i.e. file name of section 1). You can leave this cell blank if this test section and last test section's data are in the same raw data file.
 
 ## 3. Config file
-Change the parameter in the config file
+Contain all the parameters need during the calculation
 
 ### 3.1. Data_reading:
 This section is the parameter related to data reading.
