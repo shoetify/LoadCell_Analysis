@@ -14,6 +14,10 @@ This small program is used to solve the problem of:
 - The largest offset rate we recorded is around $10^{-6} N/ms$, sometimg increase and sometime decrease, which means for a 20 minutes experiment, there will be: $10^{-6}\*1000\*20\*60=1.2N$ error.
 - 1.2N error per load cell. Compare to the total drag force normally $2-4N$, this error is not acceptable.
 
+![image](https://github.com/user-attachments/assets/3030c313-6320-4061-a8f5-4932a1644a4d)
+
+
+
 
 # 2. Input
 Needs three types of files:
