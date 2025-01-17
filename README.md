@@ -14,8 +14,48 @@ This small program is used to solve the problem of:
 - The largest offset rate we recorded is around $10^{-6} N/ms$, sometimg increase and sometime decrease, which means for a 20 minutes experiment, there will be: $10^{-6}\*1000\*20\*60=1.2N$ error.
 - 1.2N error per load cell. Compare to the total drag force normally $2-4N$, this error is not acceptable.
 
+## 1.2 Solution procedure
+
+We take the part of our sample test data as an example, shown in the following figure. This is part of the drag force data
+in one of our experiment. The wind speed started at $0m/s$ at 0s, then increased to $2.52m/s$ at 60s ($0.6*10^{-5}ms$).
+After that, the wind speed increased to $3.38m/s$ at 180s and $4.25m/s$ at 300s. The load cell kept recording the drag 
+force data during this procedure.
 ![image](https://github.com/user-attachments/assets/3030c313-6320-4061-a8f5-4932a1644a4d)
 
+Here's our solution procedure:
+- (1) Calculate the stable range of data.
+  
+  Normally it take few seconds to let the wind speed and reading stable after the wind speed been adjusted (Usually 30 
+seconds for wind speed start from $0m/s$ and 10 seconds for other conditions). In addition, the last 1 second of each 
+section of data is not considered to prevent the recording error. 
+
+  So in this case, we take $0-59s$ as the first section, $90-179s$ as the second section, $190-299s$ as the third section
+of stable range.
+
+  **Note: the parameter of stable range calculation can be customized at config.yaml**
+
+- (2) Do linear polynomial fit for each range. We can get three equation: 
+  
+  $y_1=a_1x+b_1$
+
+  $y_2=a_2x+b_2$
+
+  $y_3=a_3x+b_3$
+
+- (3) For the first range, we only need to deduct the first range's error to each point.
+  
+  i.e. $F_ireal=F_i-a_1*i$, $0<i<0.6*10^5$
+
+- (4) For the other range, we need to deduct both that range's error and error accumulated by previous ranges.
+  
+  i.e. For $2_{nd}$ range, $F_ireal = F_i-a_2\*(i-0.6\*10^5)-a_1\*0.6\*10^5$, $0.6*10^5<i<1.8*10^5$
+  
+  For $3^{rd}$ range, $F_ireal = F_i-a_3\*(i-1.8\*10^5)-a_1\*0.6\*10^5-a_2*(1.8-0.6)*10^5$, $1.8*10^5<i<3.0*10^5$
+  
+  **Note: Here we use the polynomial fit result in the stable range to represent the whole test range, because it's hard
+to calculate the error during the wind speed change**
+
+- (5) After processing the data by step(1)-(4), we can use these data for force calculation.
 
 
 
