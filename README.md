@@ -44,13 +44,13 @@ of stable range.
 
 - (3) For the first range, we only need to deduct the first range's error to each point.
   
-  i.e. $F_ireal=F_i-a_1*i$, $0<i<0.6*10^5$
+  i.e. $F_{ireal}=F_i-a_1\*i$, when $0<i<0.6*10^5ms$
 
 - (4) For the other range, we need to deduct both that range's error and error accumulated by previous ranges.
   
-  i.e. For $2_{nd}$ range, $F_ireal = F_i-a_2\*(i-0.6\*10^5)-a_1\*0.6\*10^5$, $0.6*10^5<i<1.8*10^5$
+  i.e. For $2^{nd}$ range, $F_{ireal} = F_i-a_2\*(i-0.6\*10^5)-a_1\*0.6\*10^5$, when $0.6*10^5ms<i<1.8\*10^5ms$
   
-  For $3^{rd}$ range, $F_ireal = F_i-a_3\*(i-1.8\*10^5)-a_1\*0.6\*10^5-a_2*(1.8-0.6)*10^5$, $1.8*10^5<i<3.0*10^5$
+  For $3^{rd}$ range, $F_{ireal} = F_i-a_3\*(i-1.8\*10^5)-a_1\*0.6\*10^5-a_2\*(1.8-0.6)\*10^5$, when $1.8\*10^5ms<i<3.0\*10^5ms$
   
   **Note: Here we use the polynomial fit result in the stable range to represent the whole test range, because it's hard
 to calculate the error during the wind speed change**
