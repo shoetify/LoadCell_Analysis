@@ -7,10 +7,12 @@ This small program is used to solve the problem of:
 - Load cells were used to collect the hydrodynamic forces in lab.
 - When these hydrodynamic forces is vibrating, the load cell's reading will offset gradually.
 
-    For example: in the following signal of time - drag force in constant wind speed, if we used 1st degree polynomial fit the signal, we can see the mean drag force is keep increasing.
-- The largest offset rate we recorded is around 10^(-6)N/ms, which means for a 20 minutes experiment, there will be: 10^(-6)\*1000\*20\*60=1.2N error.
-- Compare to the total drag force normally 2-3N, this error is not acceptable.
+    For example: in the following signal of time - drag force in constant wind speed, if we used 2 degree polynomial fit the signal, we can see the mean drag force is keep decreasing.
+![image](https://github.com/user-attachments/assets/7a0139c6-d2c0-491b-8d8e-586f61dcc338)
 
+  
+- The largest offset rate we recorded is around $10^{-6} N/ms$, sometimg increase and sometime decrease, which means for a 20 minutes experiment, there will be: $10^{-6}\*1000\*20\*60=1.2N$ error.
+- 1.2N error per load cell. Compare to the total drag force normally $2-4N$, this error is not acceptable.
 
 
 # 2. Input
