@@ -6,59 +6,6 @@ from openpyxl import load_workbook
 
 
 class LoadCell_Util:
-    # @staticmethod
-    # def parse_markdown(md_file_path):
-    #     """
-    #     This function reads a markdown file, identifies tables following "## Note" sections,
-    #     and extracts the data into lists.
-    #
-    #     :param md_file_path: Path to the markdown file.
-    #     :return: A list of tables, where each table is represented as a list of three lists
-    #              (wind_speed, start_time, file_name).
-    #     """
-    #     with open(md_file_path, 'r', encoding='utf-8') as file:
-    #         lines = file.readlines()
-    #
-    #     # Variables to store data
-    #     wind_speed = []
-    #     start_time = []
-    #     end_time = []
-    #     file_name = []
-    #
-    #     # Flags and temporary storage
-    #     in_table = False
-    #     tables = []
-    #
-    #     for line in lines:
-    #         line = line.strip()
-    #
-    #         if line.startswith("## Note"):
-    #             in_table = False  # Reset the table flag for new notes
-    #
-    #         if in_table:
-    #             if line.startswith("|"):
-    #                 cells = [cell.strip() for cell in line.split('|')[1:-1]]
-    #
-    #                 if len(cells) == 4:
-    #                     wind_speed.append(cells[0])
-    #                     start_time.append(cells[1])
-    #                     end_time.append(cells[2])
-    #                     file_name.append(cells[3])
-    #
-    #             else:
-    #                 in_table = False  # End of the table
-    #                 # Save the table data to the list of tables
-    #                 if wind_speed or start_time or end_time or file_name:
-    #                     tables.append([wind_speed.copy(), start_time.copy(), end_time.copy(), file_name.copy()])
-    #                     # Clear the lists for the next table
-    #                     wind_speed.clear()
-    #                     start_time.clear()
-    #                     end_time.clear()
-    #                     file_name.clear()
-    #         elif line.startswith("| ---"):
-    #             in_table = True  # Table detected
-    #
-    #     return tables
 
     @staticmethod
     def parse_excel(file_path):
@@ -192,8 +139,6 @@ class LoadCell_Util:
             if not log_table[1][i]:
                 raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
             if (len(wind_speed) > 1 and wind_speed[-2] == 0.0):
-                    # or (len(file_name) == 0 and int(table[1][i]) != 0)
-                    # or (len(file_name) != 0 and table[3][i])):
                 # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
                 start_time.append(int(log_table[1][i]) + stable_time_0hz)
             else:

@@ -8,11 +8,7 @@ try:
     hasFiles = False
     log_table = []
     for file in os.listdir():
-        # if file.endswith('.md'):
-        #     hasFiles = True
-        #     print(f'Reading file [{file}] ...')
-        #     tables += LoadCell_Util.parse_markdown(file)
-        #     print(f'Successfully read file [{file}] ...')
+
         if file.endswith('log.xlsx') and not file.startswith('~'):
             if not hasFiles:
                 hasFiles = True

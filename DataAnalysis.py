@@ -1,7 +1,6 @@
 from Util import LoadCell_Util
 import numpy as np
 
-
 class DataAnalyzer:
     INDICATOR = ["Load-Cell 1's horizontal",
                  "Load-Cell 1's vertical",
@@ -10,13 +9,6 @@ class DataAnalyzer:
 
     @staticmethod
     def analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz):
-
-        # proceeding_file_name = ''
-        # start_time, end_time = 0, 0
-        # time_series = []
-        # mean_force_tables = []
-        # rms_force_tables = []
-
 
         raw_data = [[] for _ in range(4)]
         accumulated_error = [0 for _ in range(4)]
@@ -66,10 +58,6 @@ class DataAnalyzer:
             mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3], mean_force[0], mean_force[1], mean_force[2], mean_force[3]])
             rms_force_table.append(rms_force)
             print(' ')
-
-        # # Put the result back to force_tables
-        # mean_force_tables.append(mean_force_table)
-        # rms_force_tables.append(rms_force_table)
 
         return mean_force_table, rms_force_table
 
