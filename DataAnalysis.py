@@ -9,70 +9,69 @@ class DataAnalyzer:
                  "Load-Cell 2's vertical"]
 
     @staticmethod
-    def analyze(proceeded_tables, sample_rate, stable_time_others, stable_time_0Hz):
+    def analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz):
+
+        # proceeding_file_name = ''
+        # start_time, end_time = 0, 0
+        # time_series = []
+        # mean_force_tables = []
+        # rms_force_tables = []
+
+
+        raw_data = [[] for _ in range(4)]
+        accumulated_error = [0 for _ in range(4)]
+        mean_force_table = []
+        rms_force_table = []
 
         proceeding_file_name = ''
-        start_time, end_time = 0, 0
-        time_series = []
-        mean_force_tables = []
-        rms_force_tables = []
+        for i in range(len(proceeded_table[0])):
 
-        for table in proceeded_tables:
+            # These two list is to store each calculated mean and rms value and store back to force_table.
+            mean_force = []
+            rms_force = []
 
-            raw_data = [[] for _ in range(4)]
-            accumulated_error = [0 for _ in range(4)]
-            mean_force_table = []
-            rms_force_table = []
+            # If it's a new file name, then read the file.
+            if proceeding_file_name != proceeded_table[3][i]:
+                proceeding_file_name = proceeded_table[3][i]
+                raw_data = DataAnalyzer.read_new_file(proceeding_file_name)
 
-            proceeding_file_name = ''
-            for i in range(len(table[0])):
+            print(f'Start analyse wind speed: {proceeded_table[0][i]}')
 
-                # These two list is to store each calculated mean and rms value and store back to force_table.
-                mean_force = []
-                rms_force = []
+            start_time, end_time = proceeded_table[1][i], proceeded_table[2][i]
+            time_series = list(range(start_time * sample_rate, end_time * sample_rate + 1))
+            for j in range(4):
+                print(f"Analysing {DataAnalyzer.INDICATOR[j]} data")
+                print(f"    Start time is:{start_time}s; End time is:{end_time}s")
 
-                # If it's a new file name, then read the file.
-                if proceeding_file_name != table[3][i]:
-                    proceeding_file_name = table[3][i]
-                    raw_data = DataAnalyzer.read_new_file(proceeding_file_name)
+                # Get the data in the time range, linear fit and fix the data according to the result of linear fit.
+                data = raw_data[j][start_time * sample_rate: end_time * sample_rate + 1]
+                slope, intercept = LoadCell_Util.linear_fit(time_series, data)
+                print(f"    Linear fit result: y = {slope}x + {intercept}")
+                data = DataAnalyzer.deduct_error(data, accumulated_error[j], slope)
 
-                print(f'Start analyse wind speed: {table[0][i]}')
+                # Calculate mean and RMS value of Data
+                mean_force.append(np.mean(data))
+                rms_force.append(np.sqrt(np.mean(np.square(data))))
+                print(
+                    f"    mean value after correction is: {mean_force[-1]}; RMS value after correction is: "
+                    f"{rms_force[-1]}")
 
-                start_time, end_time = table[1][i], table[2][i]
-                time_series = list(range(start_time * sample_rate, end_time * sample_rate + 1))
-                for j in range(4):
-                    print(f"Analysing {DataAnalyzer.INDICATOR[j]} data")
-                    print(f"    Start time is:{start_time}s; End time is:{end_time}s")
+                # Calculate accumulate error
+                test_time = stable_time_others
+                if proceeded_table[0][i] < 0.1:
+                    test_time = stable_time_0Hz
+                accumulated_error[j] += slope * (end_time - start_time + test_time) * sample_rate
+                print(f"    accumulated error is: {accumulated_error[j]}")
 
-                    # Get the data in the time range, linear fit and fix the data according to the result of linear fit.
-                    data = raw_data[j][start_time * sample_rate: end_time * sample_rate + 1]
-                    slope, intercept = LoadCell_Util.linear_fit(time_series, data)
-                    print(f"    Linear fit result: y = {slope}x + {intercept}")
-                    data = DataAnalyzer.deduct_error(data, accumulated_error[j], slope)
+            mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3], mean_force[0], mean_force[1], mean_force[2], mean_force[3]])
+            rms_force_table.append(rms_force)
+            print(' ')
 
-                    # Calculate mean and RMS value of Data
-                    mean_force.append(np.mean(data))
-                    rms_force.append(np.sqrt(np.mean(np.square(data))))
-                    print(
-                        f"    mean value after correction is: {mean_force[-1]}; RMS value after correction is: "
-                        f"{rms_force[-1]}")
+        # # Put the result back to force_tables
+        # mean_force_tables.append(mean_force_table)
+        # rms_force_tables.append(rms_force_table)
 
-                    # Calculate accumulate error
-                    test_time = stable_time_others
-                    if table[0][i] < 0.1:
-                        test_time = stable_time_0Hz
-                    accumulated_error[j] += slope * (end_time - start_time + test_time) * sample_rate
-                    print(f"    accumulated error is: {accumulated_error[j]}")
-
-                mean_force_table.append([abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3], mean_force[0], mean_force[1], mean_force[2], mean_force[3]])
-                rms_force_table.append(rms_force)
-                print(' ')
-
-            # Put the result back to force_tables
-            mean_force_tables.append(mean_force_table)
-            rms_force_tables.append(rms_force_table)
-
-        return mean_force_tables, rms_force_tables
+        return mean_force_table, rms_force_table
 
     @staticmethod
     def read_new_file(file_name):

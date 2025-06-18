@@ -9,16 +9,16 @@ Data_reading:
 
   Sample_rate: 1000
 
-  Stable_time_0Hz: 30
+  Stable_time_0Hz: 50
 
-  Stable_time_others: 10
+  Stable_time_others: 15
 
-  Gap_before_next_wind_speed: 1
+  Gap_before_next_wind_speed: 2
 
 Data_calculation:
 
   air_density: 1.225
 
-  cylinder_diameter: 0.06
+  cylinder_diameter: 0.066
 
   test_section_length: 1.32

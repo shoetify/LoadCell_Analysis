@@ -6,59 +6,59 @@ from openpyxl import load_workbook
 
 
 class LoadCell_Util:
-    @staticmethod
-    def parse_markdown(md_file_path):
-        """
-        This function reads a markdown file, identifies tables following "## Note" sections,
-        and extracts the data into lists.
-
-        :param md_file_path: Path to the markdown file.
-        :return: A list of tables, where each table is represented as a list of three lists
-                 (wind_speed, start_time, file_name).
-        """
-        with open(md_file_path, 'r', encoding='utf-8') as file:
-            lines = file.readlines()
-
-        # Variables to store data
-        wind_speed = []
-        start_time = []
-        end_time = []
-        file_name = []
-
-        # Flags and temporary storage
-        in_table = False
-        tables = []
-
-        for line in lines:
-            line = line.strip()
-
-            if line.startswith("## Note"):
-                in_table = False  # Reset the table flag for new notes
-
-            if in_table:
-                if line.startswith("|"):
-                    cells = [cell.strip() for cell in line.split('|')[1:-1]]
-
-                    if len(cells) == 4:
-                        wind_speed.append(cells[0])
-                        start_time.append(cells[1])
-                        end_time.append(cells[2])
-                        file_name.append(cells[3])
-
-                else:
-                    in_table = False  # End of the table
-                    # Save the table data to the list of tables
-                    if wind_speed or start_time or end_time or file_name:
-                        tables.append([wind_speed.copy(), start_time.copy(), end_time.copy(), file_name.copy()])
-                        # Clear the lists for the next table
-                        wind_speed.clear()
-                        start_time.clear()
-                        end_time.clear()
-                        file_name.clear()
-            elif line.startswith("| ---"):
-                in_table = True  # Table detected
-
-        return tables
+    # @staticmethod
+    # def parse_markdown(md_file_path):
+    #     """
+    #     This function reads a markdown file, identifies tables following "## Note" sections,
+    #     and extracts the data into lists.
+    #
+    #     :param md_file_path: Path to the markdown file.
+    #     :return: A list of tables, where each table is represented as a list of three lists
+    #              (wind_speed, start_time, file_name).
+    #     """
+    #     with open(md_file_path, 'r', encoding='utf-8') as file:
+    #         lines = file.readlines()
+    #
+    #     # Variables to store data
+    #     wind_speed = []
+    #     start_time = []
+    #     end_time = []
+    #     file_name = []
+    #
+    #     # Flags and temporary storage
+    #     in_table = False
+    #     tables = []
+    #
+    #     for line in lines:
+    #         line = line.strip()
+    #
+    #         if line.startswith("## Note"):
+    #             in_table = False  # Reset the table flag for new notes
+    #
+    #         if in_table:
+    #             if line.startswith("|"):
+    #                 cells = [cell.strip() for cell in line.split('|')[1:-1]]
+    #
+    #                 if len(cells) == 4:
+    #                     wind_speed.append(cells[0])
+    #                     start_time.append(cells[1])
+    #                     end_time.append(cells[2])
+    #                     file_name.append(cells[3])
+    #
+    #             else:
+    #                 in_table = False  # End of the table
+    #                 # Save the table data to the list of tables
+    #                 if wind_speed or start_time or end_time or file_name:
+    #                     tables.append([wind_speed.copy(), start_time.copy(), end_time.copy(), file_name.copy()])
+    #                     # Clear the lists for the next table
+    #                     wind_speed.clear()
+    #                     start_time.clear()
+    #                     end_time.clear()
+    #                     file_name.clear()
+    #         elif line.startswith("| ---"):
+    #             in_table = True  # Table detected
+    #
+    #     return tables
 
     @staticmethod
     def parse_excel(file_path):
@@ -81,7 +81,7 @@ class LoadCell_Util:
         end_time = df.iloc[1:, 2].tolist()
         file_name = df.iloc[1:, 3].tolist()
 
-        return [[wind_speed, start_time, end_time, file_name]]
+        return [wind_speed, start_time, end_time, file_name]
 
     @staticmethod
     def read_txt_file(file_path):
@@ -135,7 +135,7 @@ class LoadCell_Util:
             return motorHz * wind_speed_a + wind_speed_b
 
     @staticmethod
-    def proceed_table(tables, stable_time_0hz, stable_time_others, gap_before_next_wind_speed, wind_speed_a,
+    def proceed_table(log_table, stable_time_0hz, stable_time_others, gap_before_next_wind_speed, wind_speed_a,
                       wind_speed_b):
 
         """
@@ -159,62 +159,64 @@ class LoadCell_Util:
         Raises:
         TypeError: If any required cell in the input table is empty or has invalid data.
         """
-
-        print('Proceeding lab log data ... ')
+        print('Proceeding log table data ... ')
         proceed_tables = []
-        table_count = 0
-        for table in tables:
-            table_count += 1
-            print('Proceeding lab log table ' + str(table_count) + ' ...')
-            wind_speed = []
-            start_time = []
-            end_time = []
-            file_name = []
-            for i in range(len(table[0])):
-                # Transform the motor speed to wind speed
-                if not table[0][i]:
-                    raise TypeError('Wind_Speed Cell is empty!!! Location: [' + str(i) + '] ...')
-                wind_speed.append(LoadCell_Util.motor_to_wind_speed(float(table[0][i]), wind_speed_a, wind_speed_b))
 
-                # Transform the recorded start time to calculated start time
-                if not table[1][i]:
-                    raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
-                if (len(wind_speed) > 1 and wind_speed[-2] == 0.0):
-                        # or (len(file_name) == 0 and int(table[1][i]) != 0)
-                        # or (len(file_name) != 0 and table[3][i])):
-                    # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
-                    start_time.append(int(table[1][i]) + stable_time_0hz)
+        wind_speed = []
+        start_time = []
+        end_time = []
+        file_name = []
+        for i in range(len(log_table[0])):
+
+            # Transform the recorded file name to real file name.
+            if log_table[3][i]:
+                if (len(file_name) > 0) and (log_table[3][i] != file_name[-1]):
+                    proceed_tables.append([wind_speed,start_time,end_time,file_name])
+                    wind_speed = []
+                    start_time = []
+                    end_time = []
+                    file_name = []
+                file_name.append(log_table[3][i] + '.txt')
+            else:
+                if len(file_name) > 0:
+                    file_name.append(file_name[-1])
                 else:
-                    # Otherwise, the calculated time should be added "stable_time_others"
-                    start_time.append(int(table[1][i]) + stable_time_others)
+                    raise TypeError('File_Name Cell Error, cannot find file name!!! Location: [' + str(i) + '] ...')
 
-                # Transform the recorded end time to calculated end time
-                if table[2][i]:
-                    end_time.append(int(table[2][i]) - gap_before_next_wind_speed)
+            # Transform the motor speed to wind speed
+            if not log_table[0][i]:
+                raise TypeError('Wind_Speed Cell is empty!!! Location: [' + str(i) + '] ...')
+            wind_speed.append(LoadCell_Util.motor_to_wind_speed(float(log_table[0][i]), wind_speed_a, wind_speed_b))
+
+            # Transform the recorded start time to calculated start time
+            if not log_table[1][i]:
+                raise TypeError('Start_Time Cell is empty!!! Location: [' + str(i) + '] ...')
+            if (len(wind_speed) > 1 and wind_speed[-2] == 0.0):
+                    # or (len(file_name) == 0 and int(table[1][i]) != 0)
+                    # or (len(file_name) != 0 and table[3][i])):
+                # If the wind speed is start from 0m/s, then the calculated time should be added "stable_time_0hz"
+                start_time.append(int(log_table[1][i]) + stable_time_0hz)
+            else:
+                # Otherwise, the calculated time should be added "stable_time_others"
+                start_time.append(int(log_table[1][i]) + stable_time_others)
+
+            # Transform the recorded end time to calculated end time
+            if log_table[2][i]:
+                end_time.append(int(log_table[2][i]) - gap_before_next_wind_speed)
+            else:
+                # If end time is null, then set the next start time as this end time.
+                if log_table[1][i + 1]:
+                    end_time.append(int(log_table[1][i + 1]) - gap_before_next_wind_speed)
                 else:
-                    # If end time is null, then set the next start time as this end time.
-                    if table[1][i + 1]:
-                        end_time.append(int(table[1][i + 1]) - gap_before_next_wind_speed)
-                    else:
-                        raise TypeError('End_Time Cell Error, cannot find when it is finish!!! Location: [' + str(i) +
-                                        '] ...')
-                # Double check if the end time is earlier than start time, then raise error.
-                if end_time[-1] <= start_time[-1]:
-                    raise TypeError('End Time is smaller than Start Time!!! Location: [' + str(i) + '] ...')
+                    raise TypeError('End_Time Cell Error, cannot find when it is finish!!! Location: [' + str(i) +
+                                    '] ...')
+            # Double check if the end time is earlier than start time, then raise error.
+            if end_time[-1] <= start_time[-1]:
+                raise TypeError('End Time is smaller than Start Time!!! Location: [' + str(i) + '] ...')
 
-                # Transform the recorded file name to real file name.
-                if table[3][i]:
-                    file_name.append(table[3][i] + '.txt')
-                else:
-                    if len(file_name) > 0:
-                        file_name.append(file_name[-1])
-                    else:
-                        raise TypeError('File_Name Cell Error, cannot find file name!!! Location: [' + str(i) + '] ...')
+        proceed_tables.append([wind_speed, start_time, end_time, file_name])
 
-            proceed_tables.append([wind_speed, start_time, end_time, file_name])
-
-            print('Successfully proceeding lab log table ' + str(table_count) + ' ...')
-
+        print('Successfully proceeding log table, totally find ' + str(len(proceed_tables)) + ' files in the log!!!')
         return proceed_tables
 
     @staticmethod
@@ -261,39 +263,36 @@ class LoadCell_Util:
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     @staticmethod
-    def toExcel(proceeded_tables, mean_tables, rms_tables, test_condition):
+    def toExcel(proceeded_table, mean_table, rms_table, test_condition, filename):
 
-        file_name = "Output.xlsx"
+        file_name = filename + "_output.xlsx"
         if os.path.isfile(file_name):
-            raise (TypeError("'Output.xlsx' already exist. Please remove it and try again"))
+            raise (TypeError("File name: " + file_name + " already exist. Please remove it and try again"))
 
-        for i in range(len(proceeded_tables)):
-            df = pd.DataFrame({
-                "Wind Speeds": proceeded_tables[i][0],
-                "Start Time": proceeded_tables[i][1],
-                "End Time": proceeded_tables[i][2],
-                "Drag Force(mean)": [inner_list[0] for inner_list in mean_tables[i]],
-                "Lift Force(mean)": [inner_list[1] for inner_list in mean_tables[i]],
-                "F1_drag": [inner_list[2] for inner_list in mean_tables[i]],
-                "F1_lift": [inner_list[3] for inner_list in mean_tables[i]],
-                "F2_drag": [inner_list[4] for inner_list in mean_tables[i]],
-                "F2_lift": [inner_list[5] for inner_list in mean_tables[i]],
-                "Rms1_drag": [inner_list[0] for inner_list in rms_tables[i]],
-                "Rms1_lift": [inner_list[1] for inner_list in rms_tables[i]],
-                "Rms2_drag": [inner_list[2] for inner_list in rms_tables[i]],
-                "Rms2_lift": [inner_list[3] for inner_list in rms_tables[i]],
-            })
+        df = pd.DataFrame({
+            "Wind Speeds": proceeded_table[0],
+            "Start Time": proceeded_table[1],
+            "End Time": proceeded_table[2],
+            "Drag Force(mean)": [inner_list[0] for inner_list in mean_table],
+            "Lift Force(mean)": [inner_list[1] for inner_list in mean_table],
+            "F1_drag": [inner_list[2] for inner_list in mean_table],
+            "F1_lift": [inner_list[3] for inner_list in mean_table],
+            "F2_drag": [inner_list[4] for inner_list in mean_table],
+            "F2_lift": [inner_list[5] for inner_list in mean_table],
+            "Rms1_drag": [inner_list[0] for inner_list in rms_table],
+            "Rms1_lift": [inner_list[1] for inner_list in rms_table],
+            "Rms2_drag": [inner_list[2] for inner_list in rms_table],
+            "Rms2_lift": [inner_list[3] for inner_list in rms_table],
+        })
 
-            df["Cd"] = df.apply(
-                lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                    "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
+        df["Cd"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
 
-            df["Cl"] = df.apply(
-                lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                    "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
+        df["Cl"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
 
-            print(f"start writing sheet{i}")
-            LoadCell_Util.append_df_to_excel(file_name, df, sheet_name=str(i))
-            print("successfully writing")
+        LoadCell_Util.append_df_to_excel(file_name, df)
 
         print(f"Data exported to {file_name} successfully.")
