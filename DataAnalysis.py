@@ -23,8 +23,8 @@ class DataAnalyzer:
             rms_force = []
 
             # If it's a new file name, then read the file.
-            if proceeding_file_name != proceeded_table[3][i]:
-                proceeding_file_name = proceeded_table[3][i]
+            if proceeding_file_name != proceeded_table[5][i]:
+                proceeding_file_name = proceeded_table[5][i]
                 raw_data = DataAnalyzer.read_new_file(proceeding_file_name)
 
             print(f'Start analyse wind speed: {proceeded_table[0][i]}')

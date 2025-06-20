@@ -1,6 +1,6 @@
 General:
   app_name: load_cell_calculation
-  version: 1.1
+  version: 2.1
   link: https://github.com/shoetify/LoadCell_Analysis
 
 Data_reading:
@@ -16,8 +16,6 @@ Data_reading:
   Gap_before_next_wind_speed: 2
 
 Data_calculation:
-
-  air_density: 1.225
 
   cylinder_diameter: 0.066
 

@@ -26,9 +26,10 @@ class LoadCell_Util:
         wind_speed = df.iloc[1:, 0].tolist()
         start_time = df.iloc[1:, 1].tolist()
         end_time = df.iloc[1:, 2].tolist()
-        file_name = df.iloc[1:, 3].tolist()
+        temperature = df.iloc[1:, 3].tolist()
+        file_name = df.iloc[1:, 4].tolist()
 
-        return [wind_speed, start_time, end_time, file_name]
+        return [wind_speed, start_time, end_time, temperature, file_name]
 
     @staticmethod
     def read_txt_file(file_path):
@@ -112,18 +113,22 @@ class LoadCell_Util:
         wind_speed = []
         start_time = []
         end_time = []
+        temperature = []
+        air_density = []
         file_name = []
         for i in range(len(log_table[0])):
 
             # Transform the recorded file name to real file name.
-            if log_table[3][i]:
-                if (len(file_name) > 0) and (log_table[3][i] != file_name[-1]):
-                    proceed_tables.append([wind_speed,start_time,end_time,file_name])
+            if log_table[4][i]:
+                if (len(file_name) > 0) and (log_table[4][i] != file_name[-1]):
+                    proceed_tables.append([wind_speed, start_time, end_time, temperature, air_density, file_name])
                     wind_speed = []
                     start_time = []
                     end_time = []
+                    temperature = []
+                    air_density = []
                     file_name = []
-                file_name.append(log_table[3][i] + '.txt')
+                file_name.append(log_table[4][i] + '.txt')
             else:
                 if len(file_name) > 0:
                     file_name.append(file_name[-1])
@@ -159,7 +164,16 @@ class LoadCell_Util:
             if end_time[-1] <= start_time[-1]:
                 raise TypeError('End Time is smaller than Start Time!!! Location: [' + str(i) + '] ...')
 
-        proceed_tables.append([wind_speed, start_time, end_time, file_name])
+            if log_table[3][i]:
+                temp = float(log_table[3][i])
+                temperature.append(temp)
+                air_density.append(
+                    -1.81 * (10 ** (-8)) * temp ** 3 + 1.51 * (10 ** (-5)) * temp ** 2 - 0.00468 * temp + 1.29)
+            else:
+                # If temperature is null, then raise an error
+                raise TypeError('No temperature data!!! Location: [' + str(i) + '] ...')
+
+        proceed_tables.append([wind_speed, start_time, end_time, temperature, air_density, file_name])
 
         print('Successfully proceeding log table, totally find ' + str(len(proceed_tables)) + ' files in the log!!!')
         return proceed_tables
@@ -228,15 +242,17 @@ class LoadCell_Util:
             "Rms1_lift": [inner_list[1] for inner_list in rms_table],
             "Rms2_drag": [inner_list[2] for inner_list in rms_table],
             "Rms2_lift": [inner_list[3] for inner_list in rms_table],
+            "Temperature": proceeded_table[3],
+            "Air Density": proceeded_table[4],
         })
 
         df["Cd"] = df.apply(
             lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
+                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
 
         df["Cl"] = df.apply(
             lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                "Wind Speeds"] / test_condition['density'] / test_condition['projective_area'], axis=1)
+                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
 
         LoadCell_Util.append_df_to_excel(file_name, df)
 

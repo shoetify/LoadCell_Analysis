@@ -43,9 +43,6 @@ try:
                                                    wind_speed_a, wind_speed_b)
 
     test_condition = {}
-    test_condition['density'] = config['Data_calculation']['air_density']
-    if not test_condition['density'] > 0:
-        raise TypeError('Density of the air should be larger than 0')
     test_condition['projective_area'] = config['Data_calculation']['cylinder_diameter'] * config['Data_calculation'][
         'test_section_length']
     if not test_condition['projective_area'] > 0:
@@ -58,7 +55,7 @@ try:
 
     for proceeded_table in proceeded_tables:
         mean_table, rms_table = DataAnalyzer.analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz)
-        LoadCell_Util.toExcel(proceeded_table, mean_table, rms_table, test_condition, proceeded_table[3][0])
+        LoadCell_Util.toExcel(proceeded_table, mean_table, rms_table, test_condition, proceeded_table[5][0])
 
 except Exception as e:
     print(f"An error occurred: {e}")
