@@ -38,6 +38,8 @@ try:
     stable_time_0Hz = config['Data_reading']['Stable_time_0Hz']
     stable_time_others = config['Data_reading']['Stable_time_others']
     gap_before_next_wind_speed = config['Data_reading']['Gap_before_next_wind_speed']
+    average = config['Data_calculation']['average_every']
+
     proceeded_tables = LoadCell_Util.proceed_table(log_table, stable_time_0Hz, stable_time_others,
                                                    gap_before_next_wind_speed,
                                                    wind_speed_a, wind_speed_b)
@@ -52,9 +54,12 @@ try:
 
     # Start analyzing the data
     sample_rate = config['Data_reading']['Sample_rate']
+    deg = config['Data_calculation']['ploy_deg']
+    filter_freq = config['Data_calculation']['filtered_frequency']
 
     for proceeded_table in proceeded_tables:
-        mean_table, rms_table = DataAnalyzer.analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz)
+        mean_table, rms_table = DataAnalyzer.analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz,
+                                                     deg, average, filter_freq)
         LoadCell_Util.toExcel(proceeded_table, mean_table, rms_table, test_condition, proceeded_table[5][0])
 
 except Exception as e:

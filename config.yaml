@@ -1,6 +1,6 @@
 General:
   app_name: load_cell_calculation
-  version: 2.1
+  version: 2.2
   link: https://github.com/shoetify/LoadCell_Analysis
 
 Data_reading:
@@ -17,6 +17,12 @@ Data_reading:
 
 Data_calculation:
 
-  cylinder_diameter: 0.066
+  ploy_deg: 1
+
+  average_every: 1
+
+  filtered_frequency: 0
+
+  cylinder_diameter: 0.06
 
   test_section_length: 1.32

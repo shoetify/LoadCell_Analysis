@@ -2,7 +2,9 @@ import os
 import re
 import numpy as np
 import pandas as pd
+import csv
 from openpyxl import load_workbook
+from scipy.signal import butter, filtfilt
 
 
 class LoadCell_Util:
@@ -210,6 +212,16 @@ class LoadCell_Util:
         return slope, intercept
 
     @staticmethod
+    def poly_fit(x_axis, y_axis, deg):
+
+        x = np.array(x_axis)
+        y = np.array(y_axis)
+
+        coefficients = np.polyfit(x, y, deg)
+
+        return coefficients
+
+    @staticmethod
     def append_df_to_excel(file_path, df, sheet_name='Sheet1'):
         try:
             # Try to load the existing workbook
@@ -254,6 +266,43 @@ class LoadCell_Util:
             lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
                 "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
 
+        df["Cl'"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else (row["Rms1_lift"] + row["Rms2_lift"]) * 2 / row[
+                "Wind Speeds"] / row["Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+
         LoadCell_Util.append_df_to_excel(file_name, df)
 
         print(f"Data exported to {file_name} successfully.")
+
+    @staticmethod
+    def export_fft_data_to_csv(frequency, magnitude, file_name):
+
+        print(f"Start exporting data")
+
+        # Sort the spanwise location keys in ascending order.
+        sorted_locations = sorted(magnitude.keys())
+
+        # Open the CSV file for writing.
+        with open(file_name, "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+
+            # Write the header row.
+            header = ["Frequency"] + [str(loc) for loc in sorted_locations]
+            writer.writerow(header)
+
+            # Write each row: first column is frequency, then one column per spanwise location.
+            for i, freq in enumerate(frequency):
+                row = [freq] + [magnitude[loc][i] for loc in sorted_locations]
+                writer.writerow(row)
+
+        print(f"Data successfully exported to {file_name}")
+
+    @staticmethod
+    def low_pass_filter(containers, filter_frequency, fs):
+        order = 4
+        b, a = butter(order, (filter_frequency) / (fs / 2), btype='lowpass')  # <-- modify here
+        result = []
+        for container in containers:
+            result.append(filtfilt(b, a, container))
+
+        return result
