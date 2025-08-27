@@ -236,7 +236,7 @@ class LoadCell_Util:
     @staticmethod
     def toExcel(proceeded_table, mean_table, rms_table, test_condition, filename):
 
-        file_name = filename + "_output.xlsx"
+        file_name = filename[:-4] + "_output.xlsx"
         if os.path.isfile(file_name):
             raise (TypeError("File name: " + file_name + " already exist. Please remove it and try again"))
 

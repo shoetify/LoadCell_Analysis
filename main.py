@@ -38,7 +38,7 @@ try:
     stable_time_0Hz = config['Data_reading']['Stable_time_0Hz']
     stable_time_others = config['Data_reading']['Stable_time_others']
     gap_before_next_wind_speed = config['Data_reading']['Gap_before_next_wind_speed']
-    average = config['Data_calculation']['average_every']
+    average = config['Data_calculation']['smoothy_average_points']
 
     proceeded_tables = LoadCell_Util.proceed_table(log_table, stable_time_0Hz, stable_time_others,
                                                    gap_before_next_wind_speed,
@@ -54,8 +54,8 @@ try:
 
     # Start analyzing the data
     sample_rate = config['Data_reading']['Sample_rate']
-    deg = config['Data_calculation']['ploy_deg']
-    filter_freq = config['Data_calculation']['filtered_frequency']
+    deg = config['Data_calculation']['polynomial_fitting_degree']
+    filter_freq = config['Data_calculation']['lowpass_filtered_frequency']
 
     for proceeded_table in proceeded_tables:
         mean_table, rms_table = DataAnalyzer.analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz,
