@@ -5,6 +5,9 @@ from pathlib import Path
 
 from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal, Slot, QUrl
 from PySide6.QtGui import QDesktopServices, QPixmap
+import copy
+
+import yaml
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -63,51 +66,131 @@ class AnalysisWorker(QRunnable):
             self.signals.error.emit(str(exc))
 
 
+DEFAULT_CONFIG_TEMPLATE = {
+    "General": {
+        "app_name": "load_cell_calculation",
+        "version": 2.2,
+        "link": "https://github.com/shoetify/LoadCell_Analysis",
+    },
+    "Data_reading": {
+        "WindSpeed_relationship": "y=0.1726x-0.06956",
+        "Sample_rate": 1000,
+        "Stable_time_0Hz": 50,
+        "Stable_time_others": 15,
+        "Gap_before_next_wind_speed": 2,
+    },
+    "Data_calculation": {
+        "polynomial_fitting_degree": 1,
+        "smoothy_average_points": 1,
+        "lowpass_filtered_frequency": 0,
+        "cylinder_diameter": 0.06,
+        "test_section_length": 1.32,
+    },
+}
+
+
 class ConfigEditorDialog(QDialog):
     config_saved = Signal(str)
 
     def __init__(self, parent, template_path: Path):
         super().__init__(parent)
         self.setWindowTitle("Edit Default Configuration")
-        self.resize(600, 500)
+        self.resize(520, 520)
         self._template_path = template_path
+        self._config = self._load_config()
 
-        layout = QVBoxLayout(self)
+        main_layout = QVBoxLayout(self)
 
-        self.editor = QPlainTextEdit()
-        self.editor.setPlainText(self._load_template())
-        layout.addWidget(self.editor)
+        self.general_group = QGroupBox("General")
+        general_form = QFormLayout(self.general_group)
+        general_form.setSpacing(6)
+        for key, value in self._config["General"].items():
+            label = QLabel(str(value))
+            label.setStyleSheet("font-weight: 600; padding: 4px 0;")
+            general_form.addRow(self._human_label(key) + ":", label)
+        main_layout.addWidget(self.general_group)
 
-        self.button_box = QDialogButtonBox(QDialogButtonBox.Close)
-        save_button = self.button_box.addButton("Save As...", QDialogButtonBox.ActionRole)
+        self.data_reading_group = QGroupBox("Data Reading")
+        dr_form = QFormLayout(self.data_reading_group)
+        dr_form.setSpacing(6)
+        self.data_reading_edits = {}
+        for key, value in self._config["Data_reading"].items():
+            edit = QLineEdit(str(value))
+            edit.setClearButtonEnabled(True)
+            edit.setPlaceholderText("Enter value")
+            dr_form.addRow(self._human_label(key) + ":", edit)
+            self.data_reading_edits[key] = edit
+        main_layout.addWidget(self.data_reading_group)
+
+        self.data_calc_group = QGroupBox("Data Calculation")
+        dc_form = QFormLayout(self.data_calc_group)
+        dc_form.setSpacing(6)
+        self.data_calc_edits = {}
+        for key, value in self._config["Data_calculation"].items():
+            edit = QLineEdit(str(value))
+            edit.setClearButtonEnabled(True)
+            edit.setPlaceholderText("Enter value")
+            dc_form.addRow(self._human_label(key) + ":", edit)
+            self.data_calc_edits[key] = edit
+        main_layout.addWidget(self.data_calc_group)
+
+        helper_label = QLabel("Tip: values accept numbers or formulas (e.g., y=0.1726x-0.06956).")
+        helper_label.setStyleSheet("color: #555; font-style: italic;")
+        helper_label.setWordWrap(True)
+        main_layout.addWidget(helper_label)
+
+        button_box = QDialogButtonBox(QDialogButtonBox.Close)
+        save_button = button_box.addButton("Save As…", QDialogButtonBox.ActionRole)
         save_button.clicked.connect(self._save_config)
-        self.button_box.rejected.connect(self.reject)
-        layout.addWidget(self.button_box)
+        button_box.rejected.connect(self.reject)
+        main_layout.addWidget(button_box)
 
-    def _load_template(self) -> str:
+    def _load_config(self):
+        config = self._clone_default()
         if self._template_path and self._template_path.exists():
             try:
-                return self._template_path.read_text(encoding="utf-8")
-            except Exception:  # pragma: no cover - fallback used rarely
+                loaded = yaml.safe_load(self._template_path.read_text(encoding="utf-8"))
+                if isinstance(loaded, dict):
+                    for section, defaults in DEFAULT_CONFIG_TEMPLATE.items():
+                        if section in loaded and isinstance(loaded[section], dict):
+                            config[section].update(loaded[section])
+            except Exception:  # pragma: no cover - fallback rarely used
                 pass
-        return (
-            "General:\n"
-            "  app_name: load_cell_calculation\n"
-            "  version: 2.2\n"
-            "  link: https://github.com/shoetify/LoadCell_Analysis\n\n"
-            "Data_reading:\n\n"
-            "  WindSpeed_relationship: y=0.1726x-0.06956\n\n"
-            "  Sample_rate: 1000\n\n"
-            "  Stable_time_0Hz: 50\n\n"
-            "  Stable_time_others: 15\n\n"
-            "  Gap_before_next_wind_speed: 2\n\n"
-            "Data_calculation:\n\n"
-            "  polynomial_fitting_degree: 1\n\n"
-            "  smoothy_average_points: 1\n\n"
-            "  lowpass_filtered_frequency: 0\n\n"
-            "  cylinder_diameter: 0.06\n\n"
-            "  test_section_length: 1.32\n"
-        )
+        return config
+
+    @staticmethod
+    def _clone_default():
+        return copy.deepcopy(DEFAULT_CONFIG_TEMPLATE)
+
+    @staticmethod
+    def _human_label(key: str) -> str:
+        return key.replace("_", " ").strip().capitalize()
+
+    @staticmethod
+    def _parse_value(value: str):
+        text = value.strip()
+        if text == "":
+            return ""
+        try:
+            parsed = yaml.safe_load(text)
+            if isinstance(parsed, (int, float, bool, list, dict)):
+                return parsed
+        except Exception:
+            pass
+        return text
+
+    def _collect_config(self):
+        config = self._clone_default()
+        config["General"] = self._config["General"]
+        config["Data_reading"] = {
+            key: self._parse_value(edit.text())
+            for key, edit in self.data_reading_edits.items()
+        }
+        config["Data_calculation"] = {
+            key: self._parse_value(edit.text())
+            for key, edit in self.data_calc_edits.items()
+        }
+        return config
 
     @Slot()
     def _save_config(self):
@@ -121,8 +204,13 @@ class ConfigEditorDialog(QDialog):
         if not file_path:
             return
 
+        config = self._collect_config()
+
         try:
-            Path(file_path).write_text(self.editor.toPlainText(), encoding="utf-8")
+            Path(file_path).write_text(
+                yaml.safe_dump(config, sort_keys=False, indent=2),
+                encoding="utf-8",
+            )
         except Exception as exc:  # pylint: disable=broad-except
             QMessageBox.critical(self, "Save failed", f"Could not save configuration:\n{exc}")
             return
