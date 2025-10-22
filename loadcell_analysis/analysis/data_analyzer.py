@@ -1,5 +1,6 @@
-from Util import LoadCell_Util
 import numpy as np
+
+from .utils import LoadCell_Util
 
 
 class DataAnalyzer:

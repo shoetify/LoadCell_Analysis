@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Callable, List, Optional
 
 import yaml
 
-from DataAnalysis import DataAnalyzer
-from Util import LoadCell_Util
+from .data_analyzer import DataAnalyzer
+from .utils import LoadCell_Util
 
 if TYPE_CHECKING:
     import pandas as pd

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from analysis_runner import run_analysis
+from loadcell_analysis.analysis.runner import run_analysis
 
 
 def main():

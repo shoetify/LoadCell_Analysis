@@ -37,6 +37,12 @@ This installs PySide6 (Qt for Python), NumPy, SciPy, pandas, OpenPyXL, and PyYAM
 python qt_app.py
 ```
 
+Or run the module directly:
+
+```powershell
+python -m loadcell_analysis.gui.app
+```
+
 ### Using the App
 
 1. **Config file** – choose the `config.yaml` that describes your test setup.  

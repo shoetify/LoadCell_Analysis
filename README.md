@@ -13,6 +13,30 @@ This tool corrects for systematic drift observed in load cell readings during hy
 - Refer to `docs/qt_setup.md` for step-by-step guidance on setting up Qt, using Qt Designer, and packaging the application.
 - Prefer the original automation? Run `python main.py` to execute the batch workflow from the console.
 
+## Project Structure
+
+```
+LoadCell_Analysis/
+├─ assets/
+│  └─ LOGO.png
+├─ docs/
+│  └─ qt_setup.md
+├─ loadcell_analysis/
+│  ├─ __init__.py
+│  ├─ analysis/
+│  │  ├─ __init__.py
+│  │  ├─ data_analyzer.py
+│  │  ├─ runner.py
+│  │  └─ utils.py
+│  └─ gui/
+│     ├─ __init__.py
+│     └─ app.py
+├─ config.yaml
+├─ main.py
+├─ qt_app.py
+└─ requirements.txt
+```
+
 ---
 
 ## 2. Background
