@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 
 from PySide6.QtCore import QObject, QRunnable, Qt, QThreadPool, Signal, Slot, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -78,6 +78,9 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(12, 12, 12, 12)
         layout.setSpacing(8)
 
+        header = self._build_header()
+        layout.addWidget(header)
+
         file_group = QGroupBox("Project Files")
         file_form = QFormLayout(file_group)
 
@@ -144,6 +147,40 @@ class MainWindow(QMainWindow):
 
         self.status_label = QLabel()
         layout.addWidget(self.status_label)
+
+    def _build_header(self):
+        container = QGroupBox()
+        container.setTitle("")
+        header_layout = QHBoxLayout(container)
+        header_layout.setContentsMargins(12, 12, 12, 12)
+        header_layout.setSpacing(16)
+
+        logo_label = QLabel()
+        logo_label.setAlignment(Qt.AlignLeft | Qt.AlignVCenter)
+
+        logo_path = Path(__file__).resolve().parent / "LOGO.png"
+        if logo_path.exists():
+            pixmap = QPixmap(str(logo_path))
+            if not pixmap.isNull():
+                scaled = pixmap.scaled(160, 120, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+                logo_label.setPixmap(scaled)
+        else:
+            logo_label.setText("LOGO.png not found")
+
+        header_layout.addWidget(logo_label, alignment=Qt.AlignLeft | Qt.AlignVCenter)
+
+        info_text = (
+            "Supervisor: Tongming Zhou\n"
+            "Version: 1.0.0\n"
+            "Supported email: difei.xiao@research.uwa.edu.au"
+        )
+        info_label = QLabel(info_text)
+        info_label.setAlignment(Qt.AlignCenter)
+        info_label.setStyleSheet("font-size: 14pt;")
+        info_label.setTextInteractionFlags(Qt.TextSelectableByMouse | Qt.LinksAccessibleByMouse)
+        header_layout.addWidget(info_label, stretch=1, alignment=Qt.AlignCenter)
+
+        return container
 
     def _create_file_picker(self, filter_text):
         line = QLineEdit()
