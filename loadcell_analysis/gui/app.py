@@ -356,7 +356,7 @@ class MainWindow(QMainWindow):
     def _create_config_picker(self):
         line = QLineEdit()
         browse_btn = QPushButton("Browse")
-        edit_btn = QPushButton("Edit Default")
+        edit_btn = QPushButton("Edit")
 
         def pick_file():
             current = line.text() or str(Path.cwd())
@@ -377,8 +377,8 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(6)
         layout.addWidget(line, stretch=1)
-        layout.addWidget(browse_btn)
         layout.addWidget(edit_btn)
+        layout.addWidget(browse_btn)
 
         return line, container
 
