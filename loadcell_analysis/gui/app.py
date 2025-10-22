@@ -9,6 +9,8 @@ from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QComboBox,
+    QDialog,
+    QDialogButtonBox,
     QFileDialog,
     QFormLayout,
     QGroupBox,
@@ -17,8 +19,8 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QMainWindow,
     QMessageBox,
-    QPushButton,
     QPlainTextEdit,
+    QPushButton,
     QSplitter,
     QTableWidget,
     QTableWidgetItem,
@@ -61,6 +63,74 @@ class AnalysisWorker(QRunnable):
             self.signals.error.emit(str(exc))
 
 
+class ConfigEditorDialog(QDialog):
+    config_saved = Signal(str)
+
+    def __init__(self, parent, template_path: Path):
+        super().__init__(parent)
+        self.setWindowTitle("Edit Default Configuration")
+        self.resize(600, 500)
+        self._template_path = template_path
+
+        layout = QVBoxLayout(self)
+
+        self.editor = QPlainTextEdit()
+        self.editor.setPlainText(self._load_template())
+        layout.addWidget(self.editor)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Close)
+        save_button = self.button_box.addButton("Save As...", QDialogButtonBox.ActionRole)
+        save_button.clicked.connect(self._save_config)
+        self.button_box.rejected.connect(self.reject)
+        layout.addWidget(self.button_box)
+
+    def _load_template(self) -> str:
+        if self._template_path and self._template_path.exists():
+            try:
+                return self._template_path.read_text(encoding="utf-8")
+            except Exception:  # pragma: no cover - fallback used rarely
+                pass
+        return (
+            "General:\n"
+            "  app_name: load_cell_calculation\n"
+            "  version: 2.2\n"
+            "  link: https://github.com/shoetify/LoadCell_Analysis\n\n"
+            "Data_reading:\n\n"
+            "  WindSpeed_relationship: y=0.1726x-0.06956\n\n"
+            "  Sample_rate: 1000\n\n"
+            "  Stable_time_0Hz: 50\n\n"
+            "  Stable_time_others: 15\n\n"
+            "  Gap_before_next_wind_speed: 2\n\n"
+            "Data_calculation:\n\n"
+            "  polynomial_fitting_degree: 1\n\n"
+            "  smoothy_average_points: 1\n\n"
+            "  lowpass_filtered_frequency: 0\n\n"
+            "  cylinder_diameter: 0.06\n\n"
+            "  test_section_length: 1.32\n"
+        )
+
+    @Slot()
+    def _save_config(self):
+        initial_dir = str(self._template_path.parent if self._template_path else Path.cwd())
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save configuration as",
+            initial_dir,
+            "YAML Files (*.yaml *.yml)",
+        )
+        if not file_path:
+            return
+
+        try:
+            Path(file_path).write_text(self.editor.toPlainText(), encoding="utf-8")
+        except Exception as exc:  # pylint: disable=broad-except
+            QMessageBox.critical(self, "Save failed", f"Could not save configuration:\n{exc}")
+            return
+
+        QMessageBox.information(self, "Configuration saved", f"Saved to:\n{file_path}")
+        self.config_saved.emit(file_path)
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -84,12 +154,12 @@ class MainWindow(QMainWindow):
         file_group = QGroupBox("Project Files")
         file_form = QFormLayout(file_group)
 
-        self.config_edit, config_btn = self._create_file_picker("YAML Files (*.yaml *.yml)")
+        self.config_edit, config_widget = self._create_config_picker()
         self.log_edit, log_btn = self._create_file_picker("Excel Files (*.xlsx)")
         self.data_dir_edit, data_btn = self._create_directory_picker()
         self.output_dir_edit, output_btn = self._create_directory_picker()
 
-        file_form.addRow("Config file:", self._join_widget(self.config_edit, config_btn))
+        file_form.addRow("Config file:", config_widget)
         file_form.addRow("Experiment log:", self._join_widget(self.log_edit, log_btn))
         file_form.addRow("Data directory:", self._join_widget(self.data_dir_edit, data_btn))
         file_form.addRow("Output directory (optional):", self._join_widget(self.output_dir_edit, output_btn))
@@ -194,6 +264,35 @@ class MainWindow(QMainWindow):
 
         button.clicked.connect(pick_file)
         return line, button
+
+    def _create_config_picker(self):
+        line = QLineEdit()
+        browse_btn = QPushButton("Browse")
+        edit_btn = QPushButton("Edit Default")
+
+        def pick_file():
+            current = line.text() or str(Path.cwd())
+            path, _ = QFileDialog.getOpenFileName(self, "Select configuration file", current, "YAML Files (*.yaml *.yml)")
+            if path:
+                line.setText(path)
+
+        def edit_default():
+            dialog = ConfigEditorDialog(self, self._default_config_path())
+            dialog.config_saved.connect(line.setText)
+            dialog.exec()
+
+        browse_btn.clicked.connect(pick_file)
+        edit_btn.clicked.connect(edit_default)
+
+        container = QWidget()
+        layout = QHBoxLayout(container)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(6)
+        layout.addWidget(line, stretch=1)
+        layout.addWidget(browse_btn)
+        layout.addWidget(edit_btn)
+
+        return line, container
 
     def _create_directory_picker(self):
         line = QLineEdit()
@@ -325,6 +424,10 @@ class MainWindow(QMainWindow):
             return
 
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(entry.output_path)))
+
+    def _default_config_path(self) -> Path:
+        candidate = Path(__file__).resolve().parents[2] / "config.yaml"
+        return candidate if candidate.exists() else Path.cwd() / "config.yaml"
 
 
 def launch():
