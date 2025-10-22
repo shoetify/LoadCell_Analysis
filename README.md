@@ -4,6 +4,15 @@
 
 This tool corrects for systematic drift observed in load cell readings during hydrodynamic experiments in wind tunnels.
 
+## Qt Desktop Application
+
+- Install dependencies: `python -m pip install -r requirements.txt`
+- Launch the GUI: `python qt_app.py`
+- Select your `config.yaml`, experiment `log.xlsx`, the directory with the raw `.txt` files, and (optionally) an export folder.
+- Click **Run Analysis** to process the data and review results in the built-in table; exported Excel summaries can be opened directly from the app.
+- Refer to `docs/qt_setup.md` for step-by-step guidance on setting up Qt, using Qt Designer, and packaging the application.
+- Prefer the original automation? Run `python main.py` to execute the batch workflow from the console.
+
 ---
 
 ## 2. Background

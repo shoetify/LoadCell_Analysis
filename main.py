@@ -1,69 +1,44 @@
-import os
-import yaml
-from Util import LoadCell_Util
-from DataAnalysis import DataAnalyzer
+from pathlib import Path
 
-try:
-    # Read all the tables in the log file
-    hasFiles = False
-    log_table = []
-    for file in os.listdir():
+from analysis_runner import run_analysis
 
-        if file.endswith('log.xlsx') and not file.startswith('~'):
-            if not hasFiles:
-                hasFiles = True
-            else:
-                raise (TypeError("There's more than one log file in this folder!!! Please just keep only one"))
-            print(f'Reading file [{file}] ...')
-            log_table = LoadCell_Util.parse_excel(file)
-            print(f'Successfully read file [{file}] ...')
 
-    # If no log file, then need to input the log manually.
-    if not hasFiles:
-        raise (TypeError("Cannot find any log in this folder!!!"))
+def main():
+    try:
+        cwd = Path.cwd()
+        log_files = [
+            file for file in cwd.iterdir()
+            if file.is_file() and file.name.endswith('log.xlsx') and not file.name.startswith('~')
+        ]
 
-    print('Lab log reading finish ...')
+        if not log_files:
+            raise TypeError("Cannot find any log in this folder!!!")
 
-    print('Config file reading ... ')
-    # Read the config file
-    with open('config.yaml', 'r') as file:
-        config = yaml.safe_load(file)
-    print('Config file reading successfully ...')
+        if len(log_files) > 1:
+            raise TypeError("There's more than one log file in this folder!!! Please just keep only one")
 
-    # Get Wind speed relationship
-    wind_speed_a, wind_speed_b = LoadCell_Util.extract_numbers_from_string(
-        config['Data_reading']['WindSpeed_relationship'])
+        config_path = cwd / 'config.yaml'
 
-    # Change the raw log table into proceeded table and ready for calculation
-    stable_time_0Hz = config['Data_reading']['Stable_time_0Hz']
-    stable_time_others = config['Data_reading']['Stable_time_others']
-    gap_before_next_wind_speed = config['Data_reading']['Gap_before_next_wind_speed']
-    average = config['Data_calculation']['smoothy_average_points']
+        result = run_analysis(
+            config_path=config_path,
+            log_path=log_files[0],
+            data_root=cwd,
+            output_dir=None,
+            auto_export=True,
+            progress=None
+        )
 
-    proceeded_tables = LoadCell_Util.proceed_table(log_table, stable_time_0Hz, stable_time_others,
-                                                   gap_before_next_wind_speed,
-                                                   wind_speed_a, wind_speed_b)
+        print("Analysis finished.")
+        for entry in result["results"]:
+            if entry.output_path:
+                print(f"  Exported: {entry.output_path}")
 
-    test_condition = {}
-    test_condition['projective_area'] = config['Data_calculation']['cylinder_diameter'] * config['Data_calculation'][
-        'test_section_length']
-    if not test_condition['projective_area'] > 0:
-        raise TypeError('Projective area of the module should be larger than 0')
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
-    print(" ")
+    finally:
+        input("Press Enter to exit...")
 
-    # Start analyzing the data
-    sample_rate = config['Data_reading']['Sample_rate']
-    deg = config['Data_calculation']['polynomial_fitting_degree']
-    filter_freq = config['Data_calculation']['lowpass_filtered_frequency']
 
-    for proceeded_table in proceeded_tables:
-        mean_table, rms_table = DataAnalyzer.analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz,
-                                                     deg, average, filter_freq)
-        LoadCell_Util.toExcel(proceeded_table, mean_table, rms_table, test_condition, proceeded_table[5][0])
-
-except Exception as e:
-    print(f"An error occurred: {e}")
-
-finally:
-    input("Press Enter to exit...")
+if __name__ == "__main__":
+    main()

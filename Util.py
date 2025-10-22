@@ -3,11 +3,60 @@ import re
 import numpy as np
 import pandas as pd
 import csv
+from pathlib import Path
 from openpyxl import load_workbook
 from scipy.signal import butter, filtfilt
 
 
 class LoadCell_Util:
+
+    @staticmethod
+    def emit_message(message, progress=None):
+        text = str(message)
+        print(text)
+        if progress:
+            progress(text)
+
+    @staticmethod
+    def resolve_data_path(file_name, data_root=None):
+        path = Path(file_name)
+        if not path.is_absolute() and data_root:
+            return Path(data_root) / path
+        return path
+
+    @staticmethod
+    def build_result_dataframe(proceeded_table, mean_table, rms_table, test_condition):
+        df = pd.DataFrame({
+            "Wind Speeds": proceeded_table[0],
+            "Start Time": proceeded_table[1],
+            "End Time": proceeded_table[2],
+            "Drag Force(mean)": [inner_list[0] for inner_list in mean_table],
+            "Lift Force(mean)": [inner_list[1] for inner_list in mean_table],
+            "F1_drag": [inner_list[2] for inner_list in mean_table],
+            "F1_lift": [inner_list[3] for inner_list in mean_table],
+            "F2_drag": [inner_list[4] for inner_list in mean_table],
+            "F2_lift": [inner_list[5] for inner_list in mean_table],
+            "Rms1_drag": [inner_list[0] for inner_list in rms_table],
+            "Rms1_lift": [inner_list[1] for inner_list in rms_table],
+            "Rms2_drag": [inner_list[2] for inner_list in rms_table],
+            "Rms2_lift": [inner_list[3] for inner_list in rms_table],
+            "Temperature": proceeded_table[3],
+            "Air Density": proceeded_table[4],
+        })
+
+        df["Cd"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+
+        df["Cl"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
+                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+
+        df["Cl'"] = df.apply(
+            lambda row: 0 if row["Wind Speeds"] < 0.01 else (row["Rms1_lift"] + row["Rms2_lift"]) * 2 / row[
+                "Wind Speeds"] / row["Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+
+        return df
 
     @staticmethod
     def parse_excel(file_path):
@@ -86,7 +135,7 @@ class LoadCell_Util:
 
     @staticmethod
     def proceed_table(log_table, stable_time_0hz, stable_time_others, gap_before_next_wind_speed, wind_speed_a,
-                      wind_speed_b):
+                      wind_speed_b, progress=None):
 
         """
         Process the extracted tables from markdown and transform the data.
@@ -109,7 +158,7 @@ class LoadCell_Util:
         Raises:
         TypeError: If any required cell in the input table is empty or has invalid data.
         """
-        print('Proceeding log table data ... ')
+        LoadCell_Util.emit_message('Proceeding log table data ... ', progress)
         proceed_tables = []
 
         wind_speed = []
@@ -177,7 +226,7 @@ class LoadCell_Util:
 
         proceed_tables.append([wind_speed, start_time, end_time, temperature, air_density, file_name])
 
-        print('Successfully proceeding log table, totally find ' + str(len(proceed_tables)) + ' files in the log!!!')
+        LoadCell_Util.emit_message('Successfully proceeding log table, totally find ' + str(len(proceed_tables)) + ' files in the log!!!', progress)
         return proceed_tables
 
     @staticmethod
@@ -234,56 +283,34 @@ class LoadCell_Util:
                 df.to_excel(writer, sheet_name=sheet_name, index=False)
 
     @staticmethod
-    def toExcel(proceeded_table, mean_table, rms_table, test_condition, filename):
+    def toExcel(proceeded_table, mean_table, rms_table, test_condition, filename, output_dir=None, data_root=None,
+                progress=None):
 
-        file_name = filename[:-4] + "_output.xlsx"
-        if os.path.isfile(file_name):
-            raise (TypeError("File name: " + file_name + " already exist. Please remove it and try again"))
+        data_path = LoadCell_Util.resolve_data_path(filename, data_root)
+        base_dir = Path(output_dir) if output_dir else data_path.parent
+        output_file = base_dir / f"{data_path.stem}_output.xlsx"
+        if output_file.exists():
+            raise (TypeError("File name: " + str(output_file) + " already exist. Please remove it and try again"))
 
-        df = pd.DataFrame({
-            "Wind Speeds": proceeded_table[0],
-            "Start Time": proceeded_table[1],
-            "End Time": proceeded_table[2],
-            "Drag Force(mean)": [inner_list[0] for inner_list in mean_table],
-            "Lift Force(mean)": [inner_list[1] for inner_list in mean_table],
-            "F1_drag": [inner_list[2] for inner_list in mean_table],
-            "F1_lift": [inner_list[3] for inner_list in mean_table],
-            "F2_drag": [inner_list[4] for inner_list in mean_table],
-            "F2_lift": [inner_list[5] for inner_list in mean_table],
-            "Rms1_drag": [inner_list[0] for inner_list in rms_table],
-            "Rms1_lift": [inner_list[1] for inner_list in rms_table],
-            "Rms2_drag": [inner_list[2] for inner_list in rms_table],
-            "Rms2_lift": [inner_list[3] for inner_list in rms_table],
-            "Temperature": proceeded_table[3],
-            "Air Density": proceeded_table[4],
-        })
+        df = LoadCell_Util.build_result_dataframe(proceeded_table, mean_table, rms_table, test_condition)
 
-        df["Cd"] = df.apply(
-            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Drag Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+        LoadCell_Util.append_df_to_excel(output_file, df)
 
-        df["Cl"] = df.apply(
-            lambda row: 0 if row["Wind Speeds"] < 0.01 else row["Lift Force(mean)"] * 2 / row["Wind Speeds"] / row[
-                "Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
+        LoadCell_Util.emit_message(f"Data exported to {output_file} successfully.", progress)
 
-        df["Cl'"] = df.apply(
-            lambda row: 0 if row["Wind Speeds"] < 0.01 else (row["Rms1_lift"] + row["Rms2_lift"]) * 2 / row[
-                "Wind Speeds"] / row["Wind Speeds"] / row["Air Density"] / test_condition['projective_area'], axis=1)
-
-        LoadCell_Util.append_df_to_excel(file_name, df)
-
-        print(f"Data exported to {file_name} successfully.")
+        return output_file
 
     @staticmethod
     def export_fft_data_to_csv(frequency, magnitude, file_name):
 
-        print(f"Start exporting data")
+        LoadCell_Util.emit_message(f"Start exporting data", progress=None)
 
         # Sort the spanwise location keys in ascending order.
         sorted_locations = sorted(magnitude.keys())
 
         # Open the CSV file for writing.
-        with open(file_name, "w", newline="") as csvfile:
+        path = Path(file_name)
+        with path.open("w", newline="") as csvfile:
             writer = csv.writer(csvfile)
 
             # Write the header row.
@@ -295,7 +322,7 @@ class LoadCell_Util:
                 row = [freq] + [magnitude[loc][i] for loc in sorted_locations]
                 writer.writerow(row)
 
-        print(f"Data successfully exported to {file_name}")
+        LoadCell_Util.emit_message(f"Data successfully exported to {path}", progress=None)
 
     @staticmethod
     def low_pass_filter(containers, filter_frequency, fs):

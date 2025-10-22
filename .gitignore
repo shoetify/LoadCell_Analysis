@@ -1,0 +1,34 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# Logs and temp files
+*.log
+*.tmp
+~$*.xlsx
+
+# Generated analysis outputs
+*_output.xlsx
+
+# IDE / editor settings
+.idea/
+.vscode/
+*.code-workspace
+
+# OS-specific
+.DS_Store
+Thumbs.db

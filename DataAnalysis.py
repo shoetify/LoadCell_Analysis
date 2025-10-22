@@ -9,7 +9,8 @@ class DataAnalyzer:
                  "Load-Cell 2's vertical"]
 
     @staticmethod
-    def analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz, deg, average, filter_freq):
+    def analyze(proceeded_table, sample_rate, stable_time_others, stable_time_0Hz, deg, average, filter_freq,
+                data_root=None, progress=None):
 
         raw_data = [[] for _ in range(4)]
         accumulated_error = [0 for _ in range(4)]
@@ -26,7 +27,7 @@ class DataAnalyzer:
             # If it's a new file name, then read the file.
             if proceeding_file_name != proceeded_table[5][i]:
                 proceeding_file_name = proceeded_table[5][i]
-                raw_data = DataAnalyzer.read_new_file(proceeding_file_name)
+                raw_data = DataAnalyzer.read_new_file(proceeding_file_name, data_root)
                 if average > 1:
                     raw_data = DataAnalyzer.average_point(raw_data, average)
                     sample_rate = int(sample_rate / average)
@@ -36,20 +37,20 @@ class DataAnalyzer:
                         'Please check terms "Data_reading -> Sample_rate" and "Data_calculation -> filtered_frequency"')
                 if filter_freq > 0.01:
                     raw_data = LoadCell_Util.low_pass_filter(raw_data, filter_freq, sample_rate)
-                    print(f"    filtered_frequency: {filter_freq}")
+                    LoadCell_Util.emit_message(f"    filtered_frequency: {filter_freq}", progress)
 
-            print(f'Start analyse wind speed: {proceeded_table[0][i]}')
+            LoadCell_Util.emit_message(f'Start analyse wind speed: {proceeded_table[0][i]}', progress)
 
             start_time, end_time = proceeded_table[1][i], proceeded_table[2][i]
             time_series = list(range(start_time * sample_rate, end_time * sample_rate + 1))
             for j in range(4):
-                print(f"Analysing {DataAnalyzer.INDICATOR[j]} data")
-                print(f"    Start time is:{start_time}s; End time is:{end_time}s")
+                LoadCell_Util.emit_message(f"Analysing {DataAnalyzer.INDICATOR[j]} data", progress)
+                LoadCell_Util.emit_message(f"    Start time is:{start_time}s; End time is:{end_time}s", progress)
 
                 # Get the data in the time range, linear fit and fix the data according to the result of linear fit.
                 data = raw_data[j][start_time * sample_rate: end_time * sample_rate + 1]
                 coef = LoadCell_Util.poly_fit(time_series, data, deg)
-                print(f"    Poly fit result is: " + ", ".join(map(str, coef)))
+                LoadCell_Util.emit_message(f"    Poly fit result is: " + ", ".join(map(str, coef)), progress)
                 de_data = DataAnalyzer.deduct_error(data, accumulated_error[j], coef, start_time * sample_rate)
 
                 # Calculate mean and RMS value of Data
@@ -58,9 +59,9 @@ class DataAnalyzer:
                 for k in range(len(de_data)):
                     de_data[k] = de_data[k] - mean_value
                 rms_force.append(np.sqrt(np.mean(np.square(de_data))))
-                print(
+                LoadCell_Util.emit_message(
                     f"    mean value after correction is: {mean_force[-1]}; RMS value after correction is: "
-                    f"{rms_force[-1]}")
+                    f"{rms_force[-1]}", progress)
 
                 # Calculate accumulate error
                 test_time = stable_time_others
@@ -71,20 +72,21 @@ class DataAnalyzer:
                     accumulated_error[j] += coef[k] * ((end_time + test_time) * sample_rate) ** (len(coef) - 1 - k)
                     accumulated_error[j] -= coef[k] * (start_time * sample_rate) ** (len(coef) - 1 - k)
                 # accumulated_error[j] += slope * (end_time - start_time + test_time) * sample_rate
-                print(f"    accumulated error is: {accumulated_error[j]}")
+                LoadCell_Util.emit_message(f"    accumulated error is: {accumulated_error[j]}", progress)
 
             mean_force_table.append(
                 [abs(mean_force[0] - mean_force[2]), mean_force[1] + mean_force[3], mean_force[0], mean_force[1],
                  mean_force[2], mean_force[3]])
             rms_force_table.append(rms_force)
-            print(' ')
+            LoadCell_Util.emit_message(' ', progress)
 
         return mean_force_table, rms_force_table
 
     @staticmethod
-    def read_new_file(file_name):
+    def read_new_file(file_name, data_root=None):
         data = []
-        column = LoadCell_Util.read_txt_file(file_name)
+        resolved = LoadCell_Util.resolve_data_path(file_name, data_root)
+        column = LoadCell_Util.read_txt_file(resolved)
         data.append(column[0])
         data.append(column[1])
         data.append(column[6])
